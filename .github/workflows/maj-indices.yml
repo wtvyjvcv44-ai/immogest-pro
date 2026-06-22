@@ -1,19 +1,29 @@
 name: Mise à jour indices INSEE
 
-  on:
-    schedule:
-      - cron: '0 10 * * *'
-    workflow_dispatch: {}
+# Récupère automatiquement les nouveaux indices INSEE (ILC, ILAT, IRL, ICC, BT01),
+# les vérifie (valeurs définitives DEF + anti-aberration) et les écrit dans Supabase
+# ig_indices. En cas d'anomalie, le job ÉCHOUE → GitHub envoie un e-mail au propriétaire.
 
-  jobs:
-    maj-indices:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Récupérer le dépôt
-          uses: actions/checkout@v4
-        - name: Installer Node.js
-          uses: actions/setup-node@v4
-          with:
-            node-version: '20'
-        - name: Vérifier et mettre à jour les indices INSEE
-          run: node scripts/maj-indices-insee.js
+on:
+  schedule:
+    - cron: '0 10 * * *'   # tous les jours à 10h00 UTC (~12h Paris)
+  workflow_dispatch: {}     # + déclenchement manuel depuis l'onglet Actions
+
+jobs:
+  maj-indices:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Vérifier et mettre à jour les indices INSEE
+        env:
+          # Optionnels : si non définis, le script utilise les valeurs publiques par défaut.
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/maj-indices-insee.js

@@ -1,0 +1,19 @@
+name: Mise à jour indices INSEE
+
+  on:
+    schedule:
+      - cron: '0 10 * * *'
+    workflow_dispatch: {}
+
+  jobs:
+    maj-indices:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Récupérer le dépôt
+          uses: actions/checkout@v4
+        - name: Installer Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+        - name: Vérifier et mettre à jour les indices INSEE
+          run: node scripts/maj-indices-insee.js
